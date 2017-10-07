@@ -31,6 +31,7 @@ import java.io.ObjectOutput;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.security.PrivilegedExceptionAction;
 import java.util.List;
 import java.util.ListIterator;
@@ -331,6 +332,8 @@ public abstract class HDFSFileSource<T, K, V> extends BoundedSource<T> {
     return new HDFSFileReader<>(this, filepattern(), formatClass(), serializableSplit());
   }
 
+ 
+
   @Override
   public void validate() {
     if (validateSource()) {
@@ -338,7 +341,10 @@ public abstract class HDFSFileSource<T, K, V> extends BoundedSource<T> {
         UGIHelper.getBestUGI(username()).doAs(new PrivilegedExceptionAction<Void>() {
               @Override
               public Void run() throws Exception {
-                FileSystem fs = FileSystem.get(new URI(filepattern()),
+            	URL url = new URL(filepattern());
+            	String nullFragment = null;
+            	URI uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), nullFragment);
+                FileSystem fs = FileSystem.get(uri),
                     SerializableConfiguration.newConfiguration(serializableConfiguration()));
                 FileStatus[] fileStatuses = fs.globStatus(new Path(filepattern()));
                 checkState(
